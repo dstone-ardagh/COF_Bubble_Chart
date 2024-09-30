@@ -1,0 +1,101 @@
+Sub CustomizeBullseyeChart()
+    Dim ws As Worksheet
+    Set ws = ThisWorkbook.Sheets("xyplot") 'Reference for plot sheet.
+    Dim chartObj As ChartObject
+    Set chartObj = ws.ChartObjects(1)
+    Dim shp As Shape
+    
+    'THIS SECTION RENAMES CHART FROM SETUP COLUMN B.
+    Dim wsSetup As Worksheet
+    Set wsSetup = ThisWorkbook.Sheets("Setup") 'reference for Setup Sheet
+    
+    For Each shp In chartObj.Chart.Shapes
+        ' Check each shape's name and apply the appropriate changes
+        If shp.Name = "TextBox0" Then
+            shp.TextFrame.Characters.Text = wsSetup.Range("B2").Value
+        ElseIf shp.Name = "TextBox60" Then
+            shp.TextFrame.Characters.Text = wsSetup.Range("B3").Value
+        ElseIf shp.Name = "TextBox120" Then
+            shp.TextFrame.Characters.Text = wsSetup.Range("B4").Value
+        ElseIf shp.Name = "TextBox180" Then
+            shp.TextFrame.Characters.Text = wsSetup.Range("B5").Value
+        ElseIf shp.Name = "TextBox240" Then
+            shp.TextFrame.Characters.Text = wsSetup.Range("B6").Value
+        ElseIf shp.Name = "TextBox300" Then
+            shp.TextFrame.Characters.Text = wsSetup.Range("B7").Value
+        End If
+    Next shp
+    
+    'Prep for chart adjustments
+
+    chartObj.Chart.Refresh
+    
+    Dim chartSeries1 As Series
+    Set chartSeries1 = chartObj.Chart.SeriesCollection(1)
+    
+    ' Control bubble size for the first series
+    chartSeries1.BubbleSizes = ws.Range("D7:D49")
+    
+    ' Color the first series bubbles based on column E
+    Dim i As Integer
+    For i = 1 To chartSeries1.Points.Count
+        If Not IsEmpty(ws.Cells(i + 6, 5).Value) Then
+            Select Case ws.Cells(i + 6, 5).Value
+                Case "Ideation"
+                    chartSeries1.Points(i).Format.Fill.ForeColor.RGB = RGB(204, 255, 255) ' very light blue
+                    chartSeries1.Points(i).Format.Line.ForeColor.RGB = RGB(46, 117, 181) ' dark blue outline
+                Case "S1 - Concept"
+                    chartSeries1.Points(i).Format.Fill.ForeColor.RGB = RGB(22, 235, 246) ' light blue
+                    chartSeries1.Points(i).Format.Line.ForeColor.RGB = RGB(46, 117, 181) ' dark blue outline
+                Case "S2 - Design"
+                    chartSeries1.Points(i).Format.Fill.ForeColor.RGB = RGB(156, 195, 229) ' medium blue
+                    chartSeries1.Points(i).Format.Line.ForeColor.RGB = RGB(46, 117, 181) ' dark blue outline
+                Case "S3 - Prototyping"
+                    chartSeries1.Points(i).Format.Line.Visible = msoFalse
+                    chartSeries1.Points(i).Format.Fill.ForeColor.RGB = RGB(46, 117, 181) ' dark blue
+                Case "S4 - Commissioning"
+                    chartSeries1.Points(i).Format.Line.Visible = msoFalse
+                    chartSeries1.Points(i).Format.Fill.ForeColor.RGB = RGB(255, 217, 101) ' yellow
+                Case "S5 - Commercialization"
+                    chartSeries1.Points(i).Format.Line.Visible = msoFalse
+                    chartSeries1.Points(i).Format.Fill.ForeColor.RGB = RGB(146, 208, 80) ' green
+                Case "S6 - Stopped"
+                    chartSeries1.Points(i).Format.Line.Visible = msoFalse
+                    chartSeries1.Points(i).Format.Fill.ForeColor.RGB = RGB(255, 0, 0) ' red
+            End Select
+        End If
+    Next i
+    chartObj.Chart.Refresh
+    ' Ensure the second series exists
+    Dim chartSeries2 As Series
+    Set chartSeries2 = chartObj.Chart.SeriesCollection(2)
+    chartSeries2.BubbleSizes = ws.Range("M7:M49")
+    ' Format the second series based on column H (Yes/No for the halo)
+    For i = 1 To chartSeries2.Points.Count
+        If Not IsEmpty(ws.Cells(i + 6, 8).Value) Then
+            If ws.Cells(i + 6, 8).Value = "Yes" Then
+                ' No fill and black outline (larger outline size for better visibility)
+                chartSeries2.Points(i).Format.Fill.Transparency = 1 ' Fully transparent
+                chartSeries2.Points(i).Format.Fill.Visible = msaFalse
+                chartSeries2.Points(i).Format.Line.Visible = msoTrue
+                chartSeries2.Points(i).Format.Line.ForeColor.RGB = RGB(0, 0, 0) ' Black outline
+                chartSeries2.Points(i).Format.Line.Weight = 2 ' Thicker outline (adjust as needed)
+            Else
+                ' No fill and no outline
+                chartSeries2.Points(i).Format.Fill.Transparency = 1 ' Fully transparent
+                chartSeries2.Points(i).Format.Fill.Visible = msaFalse
+                chartSeries2.Points(i).Format.Line.Visible = msoFalse ' No outline
+            End If
+        Else
+            ' Default to no fill and no outline if column H is empty
+            chartSeries2.Points(i).Format.Fill.Transparency = 1
+            chartSeries2.Points(i).Format.Fill.Visible = msaFalse ' Fully transparent
+            chartSeries2.Points(i).Format.Line.Visible = msoFalse ' No outline
+            'Selection.Format.Fill.Visible = msoFalse
+        End If
+    Next i
+    
+    ' Refresh the chart to apply changes
+    chartObj.Chart.Refresh
+End Sub
+
